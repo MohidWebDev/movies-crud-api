@@ -12,6 +12,7 @@ const fetchMovies = async () => {
 
 const renderMovies = (movies) => {
   movieList.innerHTML = "";
+  movieList.className = "movies-grid";
 
   movies.forEach((movie) => {
     const card = document.createElement("div");
@@ -36,16 +37,34 @@ const renderMovies = (movies) => {
   });
 };
 
-const handleDelete = async (e) => {
-  const id = e.target.dataset.id;
-  if (!confirm("Delete this movie?")) return;
+let pendingDeleteId = null;
 
+const handleDelete = (e) => {
+  pendingDeleteId = e.target.dataset.id;
+  document.getElementById("confirm-modal").classList.add("active");
+};
+
+const confirmDelete = async () => {
   try {
-    await fetch(`/api/movies/${id}`, { method: "DELETE" });
+    await fetch(`/api/movies/${pendingDeleteId}`, { method: "DELETE" });
     fetchMovies();
   } catch (err) {
     alert("Failed to delete movie.");
+  } finally {
+    closeModal();
   }
 };
+
+const closeModal = () => {
+  pendingDeleteId = null;
+  document.getElementById("confirm-modal").classList.remove("active");
+};
+
+document
+  .getElementById("confirm-delete-btn")
+  .addEventListener("click", confirmDelete);
+document
+  .getElementById("cancel-delete-btn")
+  .addEventListener("click", closeModal);
 
 fetchMovies();
