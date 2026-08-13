@@ -20,7 +20,10 @@
   "homepage": "https://github.com/MohidWebDev/movies-crud-api#readme",
   "dependencies": {
     "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "mongodb": "^7.5.0",
+    "mongoose": "^9.9.2",
     "morgan": "^1.11.0"
   }
 }
