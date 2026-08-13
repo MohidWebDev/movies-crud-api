@@ -1,66 +1,93 @@
-import movieModel from "../models/movieModel.js";
+import Movie from "../models/movieModel.js";
 
-const getAllMovies = (req, res) => {
-  const movies = movieModel.getAllMovies();
-  res.status(200).json(movies);
+const getAllMovies = async (req, res, next) => {
+  try {
+    const movies = await Movie.find();
+    res.status(200).json(movies);
+  } catch (err) {
+    next(err);
+  }
 };
 
-const getMovieById = (req, res) => {
-  const movie = movieModel.getMovieById(req.params.id);
-  if (!movie) {
-    return res.status(404).json({ message: "Movie not found" });
+const getMovieById = async (req, res, next) => {
+  try {
+    const movie = await Movie.findById(req.params.id);
+    if (!movie) {
+      return res.status(404).json({ message: "Movie not found" });
+    }
+    res.status(200).json(movie);
+  } catch (err) {
+    next(err);
   }
-  res.status(200).json(movie);
 };
 
-const createMovie = (req, res) => {
-  const { title, director, year, genre } = req.body;
-  if (!title || !director || !year || !genre) {
-    return res
-      .status(400)
-      .json({
-        message: "All fields are required: title, director, year, genre",
-      });
+const createMovie = async (req, res, next) => {
+  try {
+    const { title, director, year, genre } = req.body;
+    if (!title || !director || !year || !genre) {
+      return res
+        .status(400)
+        .json({
+          message: "All fields are required: title, director, year, genre",
+        });
+    }
+    const newMovie = await Movie.create({ title, director, year, genre });
+    res.status(201).json(newMovie);
+  } catch (err) {
+    next(err);
   }
-  const newMovie = movieModel.createMovie({ title, director, year, genre });
-  res.status(201).json(newMovie);
 };
 
-const updateMovie = (req, res) => {
-  const { title, director, year, genre } = req.body;
-  if (!title || !director || !year || !genre) {
-    return res
-      .status(400)
-      .json({
-        message: "All fields are required: title, director, year, genre",
-      });
+const updateMovie = async (req, res, next) => {
+  try {
+    const { title, director, year, genre } = req.body;
+    if (!title || !director || !year || !genre) {
+      return res
+        .status(400)
+        .json({
+          message: "All fields are required: title, director, year, genre",
+        });
+    }
+    const updatedMovie = await Movie.findByIdAndUpdate(
+      req.params.id,
+      { title, director, year, genre },
+      { new: true, runValidators: true },
+    );
+    if (!updatedMovie) {
+      return res.status(404).json({ message: "Movie not found" });
+    }
+    res.status(200).json(updatedMovie);
+  } catch (err) {
+    next(err);
   }
-  const updatedMovie = movieModel.updateMovie(req.params.id, {
-    title,
-    director,
-    year,
-    genre,
-  });
-  if (!updatedMovie) {
-    return res.status(404).json({ message: "Movie not found" });
-  }
-  res.status(200).json(updatedMovie);
 };
 
-const patchMovie = (req, res) => {
-  const updatedMovie = movieModel.patchMovie(req.params.id, req.body);
-  if (!updatedMovie) {
-    return res.status(404).json({ message: "Movie not found" });
+const patchMovie = async (req, res, next) => {
+  try {
+    const updatedMovie = await Movie.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true },
+    );
+    if (!updatedMovie) {
+      return res.status(404).json({ message: "Movie not found" });
+    }
+    res.status(200).json(updatedMovie);
+  } catch (err) {
+    next(err);
   }
-  res.status(200).json(updatedMovie);
 };
 
-const deleteMovie = (req, res) => {
-  const deleted = movieModel.deleteMovie(req.params.id);
-  if (!deleted) {
-    return res.status(404).json({ message: "Movie not found" });
+const deleteMovie = async (req, res, next) => {
+  try {
+    const deleted = await Movie.findByIdAndDelete(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ message: "Movie not found" });
+    }
+    res.status(204).send();
+  } catch (err) {
+    next(err);
   }
-  res.status(204).send();
 };
 
 export default {
