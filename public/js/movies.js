@@ -23,8 +23,8 @@ const renderMovies = (movies) => {
         ${movie.director} — ${movie.genre}
       </div>
       <div class="movie-actions">
-        <a href="edit-movie.html?id=${movie.id}" class="btn">Edit</a>
-        <button data-id="${movie.id}" class="delete-btn">Delete</button>
+        <a href="edit-movie.html?id=${movie._id}" class="btn">Edit</a>
+        <button data-id="${movie._id}" class="delete-btn">Delete</button>
       </div>
     `;
 
