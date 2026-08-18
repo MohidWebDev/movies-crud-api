@@ -24,13 +24,6 @@ const getMovieById = async (req, res, next) => {
 const createMovie = async (req, res, next) => {
   try {
     const { title, director, year, genre } = req.body;
-    if (!title || !director || !year || !genre) {
-      return res
-        .status(400)
-        .json({
-          message: "All fields are required: title, director, year, genre",
-        });
-    }
     const newMovie = await Movie.create({ title, director, year, genre });
     res.status(201).json(newMovie);
   } catch (err) {
@@ -41,13 +34,6 @@ const createMovie = async (req, res, next) => {
 const updateMovie = async (req, res, next) => {
   try {
     const { title, director, year, genre } = req.body;
-    if (!title || !director || !year || !genre) {
-      return res
-        .status(400)
-        .json({
-          message: "All fields are required: title, director, year, genre",
-        });
-    }
     const updatedMovie = await Movie.findByIdAndUpdate(
       req.params.id,
       { title, director, year, genre },
