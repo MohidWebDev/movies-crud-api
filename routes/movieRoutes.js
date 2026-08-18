@@ -5,6 +5,7 @@ import {
   movieIdValidationRule,
 } from "../middleware/validators/movieValidator.js";
 import validateRequest from "../middleware/validateRequest.js";
+import upload from "../middleware/upload.js";
 
 const router = express.Router();
 
@@ -20,6 +21,13 @@ router.post(
   movieValidationRules,
   validateRequest,
   movieController.createMovie,
+);
+router.post(
+  "/:id/poster",
+  movieIdValidationRule,
+  validateRequest,
+  upload.single("poster"),
+  movieController.uploadPoster,
 );
 router.put(
   "/:id",

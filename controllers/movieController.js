@@ -21,6 +21,24 @@ const createMovie = catchAsync(async (req, res) => {
   res.status(201).json(newMovie);
 });
 
+const uploadPoster = catchAsync(async (req, res, next) => {
+  if (!req.file) {
+    return next(new AppError("No file uploaded", 400));
+  }
+
+  const movie = await Movie.findByIdAndUpdate(
+    req.params.id,
+    { poster: req.file.filename },
+    { new: true },
+  );
+
+  if (!movie) {
+    return next(new AppError("Movie not found", 404));
+  }
+
+  res.status(200).json(movie);
+});
+
 const updateMovie = catchAsync(async (req, res, next) => {
   const { title, director, year, genre } = req.body;
   const updatedMovie = await Movie.findByIdAndUpdate(
@@ -57,6 +75,7 @@ export default {
   getAllMovies,
   getMovieById,
   createMovie,
+  uploadPoster,
   updateMovie,
   patchMovie,
   deleteMovie,
