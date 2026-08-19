@@ -1,4 +1,5 @@
 import multer from "multer";
+import path from "path";
 import AppError from "../utils/AppError.js";
 
 const storage = multer.diskStorage({
@@ -11,9 +12,15 @@ const storage = multer.diskStorage({
   },
 });
 
+const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+const allowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
+
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-  if (allowedTypes.includes(file.mimetype)) {
+  const ext = path.extname(file.originalname).toLowerCase();
+  const validMimetype = allowedTypes.includes(file.mimetype);
+  const validExtension = allowedExtensions.includes(ext);
+
+  if (validMimetype || validExtension) {
     cb(null, true);
   } else {
     cb(new AppError("Only JPEG, PNG, and WEBP images are allowed", 400), false);
