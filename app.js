@@ -11,7 +11,7 @@ const app = express();
 
 app.use(helmet());
 app.use(cors());
-app.use(limiter());
+app.use(limiter);
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.static("public"));
