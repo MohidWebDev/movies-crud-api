@@ -10,5 +10,5 @@ export const movieValidationRules = [
 ];
 
 export const movieIdValidationRule = [
-  body("id").isMongoId().withMessage("Invalid movie ID"),
+  param("id").isMongoId().withMessage("Invalid movie ID"),
 ];
