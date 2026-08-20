@@ -9,7 +9,11 @@ import limiter from "./middleware/rateLimiter.js";
 
 const app = express();
 
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
 app.use(cors());
 app.use(limiter);
 app.use(morgan("dev"));

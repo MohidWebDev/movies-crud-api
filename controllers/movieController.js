@@ -1,6 +1,8 @@
 import Movie from "../models/movieModel.js";
 import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
+import fs from "fs";
+import path from "path";
 
 const getAllMovies = catchAsync(async (req, res) => {
   const movies = await Movie.find();
@@ -26,15 +28,22 @@ const uploadPoster = catchAsync(async (req, res, next) => {
     return next(new AppError("No file uploaded", 400));
   }
 
-  const movie = await Movie.findByIdAndUpdate(
-    req.params.id,
-    { poster: req.file.filename },
-    { new: true },
-  );
-
+  const movie = await Movie.findById(req.params.id);
   if (!movie) {
     return next(new AppError("Movie not found", 404));
   }
+
+  if (movie.poster) {
+    const oldPath = path.join("public/uploads", movie.poster);
+    fs.unlink(oldPath, (err) => {
+      if (err && err.code !== "ENOENT") {
+        console.error("Failed to delete old poster:", err);
+      }
+    });
+  }
+
+  movie.poster = req.file.filename;
+  await movie.save();
 
   res.status(200).json(movie);
 });
