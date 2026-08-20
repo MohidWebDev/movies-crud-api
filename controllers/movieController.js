@@ -1,6 +1,7 @@
 import Movie from "../models/movieModel.js";
 import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
+import cloudinary from "../config/cloudinary.js";
 import fs from "fs";
 import path from "path";
 
@@ -33,16 +34,17 @@ const uploadPoster = catchAsync(async (req, res, next) => {
     return next(new AppError("Movie not found", 404));
   }
 
-  if (movie.poster) {
-    const oldPath = path.join("public/uploads", movie.poster);
-    fs.unlink(oldPath, (err) => {
-      if (err && err.code !== "ENOENT") {
-        console.error("Failed to delete old poster:", err);
-      }
+  // Delete the old poster from Cloudinary if one exists
+  if (movie.poster?.publicId) {
+    await cloudinary.uploader.destroy(movie.poster.publicId).catch((err) => {
+      console.error("Failed to delete old poster from Cloudinary:", err);
     });
   }
 
-  movie.poster = req.file.filename;
+  movie.poster = {
+    url: req.file.path,
+    publicId: req.file.filename,
+  };
   await movie.save();
 
   res.status(200).json(movie);
@@ -77,6 +79,13 @@ const deleteMovie = catchAsync(async (req, res, next) => {
   if (!deleted) {
     return next(new AppError("Movie not found", 404));
   }
+
+  if (deleted.poster?.publicId) {
+    await cloudinary.uploader.destroy(deleted.poster.publicId).catch((err) => {
+      console.error("Failed to delete poster from Cloudinary:", err);
+    });
+  }
+
   res.status(204).send();
 });
 

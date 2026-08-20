@@ -18,7 +18,8 @@ const movieSchema = new mongoose.Schema({
     required: true,
   },
   poster: {
-    type: String,
+    url: { type: String },
+    publicId: { type: String },
   },
 });
 
