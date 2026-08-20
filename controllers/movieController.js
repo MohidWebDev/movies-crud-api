@@ -2,8 +2,6 @@ import Movie from "../models/movieModel.js";
 import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
 import cloudinary from "../config/cloudinary.js";
-import fs from "fs";
-import path from "path";
 
 const getAllMovies = catchAsync(async (req, res) => {
   const movies = await Movie.find();
