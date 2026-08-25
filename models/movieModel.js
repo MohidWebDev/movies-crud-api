@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Review from "./reviewModel";
+import Review from "./reviewModel.js";
 
 const movieSchema = new mongoose.Schema(
   {
