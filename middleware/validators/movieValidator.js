@@ -6,7 +6,22 @@ export const movieValidationRules = [
   body("year")
     .isInt({ min: 1888, max: 2100 })
     .withMessage("Year must be a valid number"),
-  body("genre").trim().notEmpty().withMessage("Genre is required"),
+  body("genre")
+    .isArray({ min: 1 })
+    .withMessage("At least one genre is required"),
+  body("genre.*")
+    .isIn([
+      "Action",
+      "Comedy",
+      "Drama",
+      "Sci-Fi",
+      "Horror",
+      "Romance",
+      "Documentary",
+      "Thriller",
+      "Animation",
+    ])
+    .withMessage("Invalid genre selected"),
 ];
 
 export const movieIdValidationRule = [

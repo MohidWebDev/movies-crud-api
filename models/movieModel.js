@@ -24,9 +24,14 @@ const movieSchema = new mongoose.Schema(
       ],
     },
     genre: {
-      type: String,
-      required: [true, "Genre is required"],
-      trim: true,
+      type: [String],
+      required: [true, "At least one genre is required"],
+      validate: {
+        validator: function (arr) {
+          return Array.isArray(arr) && arr.length > 0;
+        },
+        message: "At least one genre is required",
+      },
       enum: {
         values: [
           "Action",
