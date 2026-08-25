@@ -51,9 +51,8 @@ const movieSchema = new mongoose.Schema(
 );
 
 // Pre-save hook: normalize title casing/whitespace before saving
-movieSchema.pre("save", function (next) {
+movieSchema.pre("save", function () {
   this.title = this.title.trim();
-  next();
 });
 
 // Post-save hook: simple logging
