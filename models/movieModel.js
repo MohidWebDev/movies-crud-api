@@ -23,6 +23,7 @@ const movieSchema = new mongoose.Schema(
         new Date().getFullYear() + 1,
         "Year can't be too far in the future",
       ],
+      index: true, // supports sorting movies by year
     },
     genre: {
       type: [String],
@@ -66,17 +67,16 @@ const movieSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Pre-save hook: normalize title casing/whitespace before saving
+movieSchema.index({ genre: 1 });
+
 movieSchema.pre("save", function () {
   this.title = this.title.trim();
 });
 
-// Post-save hook: simple logging
 movieSchema.post("save", function (doc) {
   console.log(`Movie saved: ${doc.title} (${doc._id})`);
 });
 
-// Pre-delete hook: remove all reviews belonging to this movie before it's deleted
 movieSchema.pre("findOneAndDelete", async function () {
   const filter = this.getFilter();
   await Review.deleteMany({ movie: filter._id });
