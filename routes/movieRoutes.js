@@ -6,8 +6,11 @@ import {
 } from "../middleware/validators/movieValidator.js";
 import validateRequest from "../middleware/validateRequest.js";
 import upload from "../middleware/upload.js";
+import reviewRoutes from "./reviewRoutes.js";
 
 const router = express.Router();
+
+router.use("/:movieId/reviews", reviewRoutes);
 
 router.get("/", movieController.getAllMovies);
 router.get(

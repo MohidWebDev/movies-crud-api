@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import Review from "./reviewModel";
 
 const movieSchema = new mongoose.Schema(
   {
@@ -73,6 +74,12 @@ movieSchema.pre("save", function () {
 // Post-save hook: simple logging
 movieSchema.post("save", function (doc) {
   console.log(`Movie saved: ${doc.title} (${doc._id})`);
+});
+
+// Pre-delete hook: remove all reviews belonging to this movie before it's deleted
+movieSchema.pre("findOneAndDelete", async function () {
+  const filter = this.getFilter();
+  await Review.deleteMany({ movie: filter._id });
 });
 
 const Movie = mongoose.model("Movie", movieSchema);
