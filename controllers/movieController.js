@@ -4,8 +4,28 @@ import catchAsync from "../utils/catchAsync.js";
 import cloudinary from "../config/cloudinary.js";
 
 const getAllMovies = catchAsync(async (req, res) => {
-  const movies = await Movie.find();
-  res.status(200).json(movies);
+  const page = Math.max(Number(req.query.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 100);
+  const skip = (page - 1) * limit;
+
+  const filter = {};
+  if (req.query.genre) {
+    filter.genre = req.query.genre;
+  }
+
+  const sortOption = req.query.sort === "year" ? { year: 1 } : {};
+
+  const [movies, totalCount] = await Promise.all([
+    Movie.find(filter).sort(sortOption).skip(skip).limit(limit),
+    Movie.countDocuments(filter),
+  ]);
+
+  res.status(200).json({
+    data: movies,
+    page,
+    totalPages: Math.ceil(totalCount / limit),
+    totalCount,
+  });
 });
 
 const getMovieById = catchAsync(async (req, res, next) => {

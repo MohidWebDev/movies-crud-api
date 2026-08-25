@@ -3,6 +3,7 @@ import movieController from "../controllers/movieController.js";
 import {
   movieValidationRules,
   movieIdValidationRule,
+  getMoviesQueryValidationRules,
 } from "../middleware/validators/movieValidator.js";
 import validateRequest from "../middleware/validateRequest.js";
 import upload from "../middleware/upload.js";
@@ -12,7 +13,12 @@ const router = express.Router();
 
 router.use("/:movieId/reviews", reviewRoutes);
 
-router.get("/", movieController.getAllMovies);
+router.get(
+  "/",
+  getMoviesQueryValidationRules,
+  validateRequest,
+  movieController.getAllMovies,
+);
 router.get(
   "/:id",
   movieIdValidationRule,

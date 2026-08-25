@@ -1,4 +1,4 @@
-import { body, param } from "express-validator";
+import { body, param, query } from "express-validator";
 
 export const movieValidationRules = [
   body("title").trim().notEmpty().withMessage("Title is required"),
@@ -36,4 +36,40 @@ export const movieValidationRules = [
 
 export const movieIdValidationRule = [
   param("id").isMongoId().withMessage("Invalid movie ID"),
+];
+
+export const getMoviesQueryValidationRules = [
+  query("page")
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage("Page must be a positive integer"),
+  query("limit")
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage("Limit must be between 1 and 100"),
+  query("genre")
+    .optional()
+    .isIn([
+      "Action",
+      "Adventure",
+      "Animation",
+      "Comedy",
+      "Crime",
+      "Documentary",
+      "Drama",
+      "Family",
+      "Fantasy",
+      "Historical",
+      "Horror",
+      "Musical",
+      "Mystery",
+      "Romance",
+      "Sci-Fi",
+      "Sports",
+      "Thriller",
+      "War",
+      "Western",
+    ])
+    .withMessage("Invalid genre filter"),
+  query("sort").optional().isIn(["year"]).withMessage("Invalid sort option"),
 ];
