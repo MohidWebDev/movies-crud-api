@@ -119,31 +119,27 @@ const getMovieStats = catchAsync(async (req, res) => {
     },
     {
       $match: {
-        "reviews.0": { $exists: true }, // only movies that have at least one review
+        "reviews.0": { $exists: true },
       },
     },
     {
       $addFields: {
         averageRating: { $avg: "$reviews.rating" },
-      },
-    },
-    { $unwind: "$genre" },
-    {
-      $group: {
-        _id: "$genre",
-        averageRating: { $avg: "$averageRating" },
-        ratedMovieCount: { $sum: 1 },
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        genre: "$_id",
-        averageRating: { $round: ["$averageRating", 1] },
-        ratedMovieCount: 1,
+        reviewCount: { $size: "$reviews" },
       },
     },
     { $sort: { averageRating: -1 } },
+    { $limit: 5 },
+    {
+      $project: {
+        _id: 1,
+        title: 1,
+        year: 1,
+        poster: 1,
+        averageRating: { $round: ["$averageRating", 1] },
+        reviewCount: 1,
+      },
+    },
   ]);
 
   res.status(200).json(stats);
