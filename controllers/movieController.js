@@ -107,6 +107,48 @@ const deleteMovie = catchAsync(async (req, res, next) => {
   res.status(204).send();
 });
 
+const getMovieStats = catchAsync(async (req, res) => {
+  const stats = await Movie.aggregate([
+    {
+      $lookup: {
+        from: "reviews",
+        localField: "_id",
+        foreignField: "movie",
+        as: "reviews",
+      },
+    },
+    {
+      $match: {
+        "reviews.0": { $exists: true }, // only movies that have at least one review
+      },
+    },
+    {
+      $addFields: {
+        averageRating: { $avg: "$reviews.rating" },
+      },
+    },
+    { $unwind: "$genre" },
+    {
+      $group: {
+        _id: "$genre",
+        averageRating: { $avg: "$averageRating" },
+        ratedMovieCount: { $sum: 1 },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        genre: "$_id",
+        averageRating: { $round: ["$averageRating", 1] },
+        ratedMovieCount: 1,
+      },
+    },
+    { $sort: { averageRating: -1 } },
+  ]);
+
+  res.status(200).json(stats);
+});
+
 export default {
   getAllMovies,
   getMovieById,
@@ -115,4 +157,5 @@ export default {
   updateMovie,
   patchMovie,
   deleteMovie,
+  getMovieStats,
 };

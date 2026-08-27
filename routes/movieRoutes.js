@@ -19,6 +19,9 @@ router.get(
   validateRequest,
   movieController.getAllMovies,
 );
+
+router.get("/stats", movieController.getMovieStats);
+
 router.get(
   "/:id",
   movieIdValidationRule,
