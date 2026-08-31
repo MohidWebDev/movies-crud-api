@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 import movieRoutes from "./routes/movieRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -20,6 +21,7 @@ app.use(cors());
 app.use(limiter);
 app.use(morgan("dev"));
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/api/movies", movieRoutes);
 app.use("/api/reviews", reviewRoutes);
