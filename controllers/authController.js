@@ -143,3 +143,16 @@ export const logout = async (req, res, next) => {
     next(err);
   }
 };
+
+export const getMe = async (req, res, next) => {
+  try {
+    res.status(200).json({
+      id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
