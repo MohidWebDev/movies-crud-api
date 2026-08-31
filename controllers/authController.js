@@ -123,3 +123,23 @@ export const refresh = async (req, res, next) => {
     next(err);
   }
 };
+
+export const logout = async (req, res, next) => {
+  try {
+    const incomingToken = req.cookies.refreshToken;
+
+    if (incomingToken) {
+      await RefreshToken.deleteOne({ token: incomingToken });
+    }
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (err) {
+    next(err);
+  }
+};
