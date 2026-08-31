@@ -6,6 +6,7 @@ import {
   reviewIdParamValidationRule,
 } from "../middleware/validators/reviewValidator.js";
 import validateRequest from "../middleware/validateRequest.js";
+import { protect, authorize } from "../middleware/authMiddleware.js";
 
 const router = express.Router({ mergeParams: true });
 
@@ -18,6 +19,7 @@ router.get(
 );
 router.post(
   "/",
+  protect,
   [...movieIdParamValidationRule, ...reviewValidationRules],
   validateRequest,
   reviewController.createReview,
@@ -32,12 +34,16 @@ router.get(
 );
 router.patch(
   "/:id",
+  protect,
+  authorize("admin"),
   [...reviewIdParamValidationRule, ...reviewValidationRules],
   validateRequest,
   reviewController.updateReview,
 );
 router.delete(
   "/:id",
+  protect,
+  authorize("admin"),
   reviewIdParamValidationRule,
   validateRequest,
   reviewController.deleteReview,
