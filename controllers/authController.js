@@ -1,3 +1,4 @@
+import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
 import generateToken from "../utils/generateToken.js";
 import generateRefreshToken from "../utils/generateRefreshToken.js";
@@ -65,6 +66,59 @@ export const login = async (req, res, next) => {
         role: user.role,
       },
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const refresh = async (req, res, next) => {
+  try {
+    const incomingToken = req.cookies.refreshToken;
+    if (!incomingToken) {
+      return res.status(401).json({ message: "No refresh token provided" });
+    }
+
+    const storedToken = await RefreshToken.findOne({ token: incomingToken });
+    if (!storedToken) {
+      return res.status(401).json({ message: "Invalid refresh token" });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(incomingToken, process.env.JWT_REFRESH_SECRET);
+    } catch (err) {
+      await RefreshToken.deleteOne({ token: incomingToken });
+      return res
+        .status(401)
+        .json({ message: "Invalid or expired refresh token" });
+    }
+
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    // Rotation: delete old refresh token, issue a new one
+    await RefreshToken.deleteOne({ token: incomingToken });
+
+    const newAccessToken = generateToken(user._id, user.role);
+    const newRefreshToken = generateRefreshToken(user._id);
+
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    await RefreshToken.create({
+      token: newRefreshToken,
+      userId: user._id,
+      expiresAt,
+    });
+
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({ accessToken: newAccessToken });
   } catch (err) {
     next(err);
   }
