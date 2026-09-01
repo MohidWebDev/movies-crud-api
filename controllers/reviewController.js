@@ -40,10 +40,10 @@ const getReviewById = catchAsync(async (req, res, next) => {
 });
 
 const updateReview = catchAsync(async (req, res, next) => {
-  const { reviewerName, rating, comment } = req.body;
+  const { rating, comment } = req.body;
   const updatedReview = await Review.findByIdAndUpdate(
     req.params.id,
-    { reviewerName, rating, comment },
+    { rating, comment },
     { new: true, runValidators: true },
   );
   if (!updatedReview) {
