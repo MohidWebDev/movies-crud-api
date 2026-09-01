@@ -11,10 +11,10 @@ const createReview = catchAsync(async (req, res, next) => {
     return next(new AppError("Movie not found", 404));
   }
 
-  const { reviewerName, rating, comment } = req.body;
+  const { rating, comment } = req.body;
   const newReview = await Review.create({
     movie: movieId,
-    reviewerName,
+    reviewerName: req.user.name,
     rating,
     comment,
   });
