@@ -9,8 +9,35 @@ const getAllMovies = catchAsync(async (req, res) => {
   const skip = (page - 1) * limit;
 
   const filter = {};
+  const andConditions = [];
+
   if (req.query.genre) {
-    filter.genre = req.query.genre;
+    andConditions.push({ genre: req.query.genre });
+  }
+
+  if (req.query.search) {
+    const search = req.query.search.trim();
+    const regex = new RegExp(search, "i");
+
+    andConditions.push({
+      $or: [
+        { title: regex },
+        { director: regex },
+        { genre: regex },
+        {
+          $expr: {
+            $regexMatch: {
+              input: { $toString: "$year" },
+              regex: search,
+            },
+          },
+        },
+      ],
+    });
+  }
+
+  if (andConditions.length > 0) {
+    filter.$and = andConditions;
   }
 
   const sortOption = req.query.sort === "year" ? { year: 1 } : {};
