@@ -135,6 +135,8 @@ const deleteMovie = catchAsync(async (req, res, next) => {
 });
 
 const getMovieStats = catchAsync(async (req, res) => {
+  const MIN_REVIEWS_THRESHOLD = 3; // "m" — how many reviews before a movie is trusted on its own average
+
   const stats = await Movie.aggregate([
     {
       $lookup: {
@@ -155,7 +157,46 @@ const getMovieStats = catchAsync(async (req, res) => {
         reviewCount: { $size: "$reviews" },
       },
     },
-    { $sort: { averageRating: -1 } },
+    {
+      // Compute the site-wide average rating ("C") across all rated movies,
+      // so it's available to every document in the next stage.
+      $setWindowFields: {
+        output: {
+          siteAverageRating: { $avg: "$averageRating" },
+        },
+      },
+    },
+    {
+      $addFields: {
+        weightedRating: {
+          $add: [
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    "$reviewCount",
+                    { $add: ["$reviewCount", MIN_REVIEWS_THRESHOLD] },
+                  ],
+                },
+                "$averageRating",
+              ],
+            },
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    MIN_REVIEWS_THRESHOLD,
+                    { $add: ["$reviewCount", MIN_REVIEWS_THRESHOLD] },
+                  ],
+                },
+                "$siteAverageRating",
+              ],
+            },
+          ],
+        },
+      },
+    },
+    { $sort: { weightedRating: -1 } },
     { $limit: 5 },
     {
       $project: {
