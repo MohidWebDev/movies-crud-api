@@ -197,7 +197,7 @@ const getMovieStats = catchAsync(async (req, res) => {
       },
     },
     { $sort: { weightedRating: -1 } },
-    { $limit: 5 },
+    { $limit: 15 },
     {
       $project: {
         _id: 1,
