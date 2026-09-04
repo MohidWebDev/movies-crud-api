@@ -64,8 +64,14 @@ const getMovieById = catchAsync(async (req, res, next) => {
 });
 
 const createMovie = catchAsync(async (req, res) => {
-  const { title, director, year, genre } = req.body;
-  const newMovie = await Movie.create({ title, director, year, genre });
+  const { title, director, year, genre, trailerUrl } = req.body;
+  const newMovie = await Movie.create({
+    title,
+    director,
+    year,
+    genre,
+    trailerUrl,
+  });
   res.status(201).json(newMovie);
 });
 
@@ -96,10 +102,10 @@ const uploadPoster = catchAsync(async (req, res, next) => {
 });
 
 const updateMovie = catchAsync(async (req, res, next) => {
-  const { title, director, year, genre } = req.body;
+  const { title, director, year, genre, trailerUrl } = req.body;
   const updatedMovie = await Movie.findByIdAndUpdate(
     req.params.id,
-    { title, director, year, genre },
+    { title, director, year, genre, trailerUrl },
     { new: true, runValidators: true },
   );
   if (!updatedMovie) {
