@@ -63,6 +63,11 @@ const movieSchema = new mongoose.Schema(
       url: { type: String },
       publicId: { type: String },
     },
+    trailerUrl: {
+      type: String,
+      trim: true,
+      default: null,
+    },
   },
   { timestamps: true },
 );
