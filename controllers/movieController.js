@@ -1,4 +1,5 @@
 import Movie from "../models/movieModel.js";
+import Review from "../models/reviewModel.js";
 import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
 import cloudinary from "../config/cloudinary.js";
@@ -130,6 +131,8 @@ const deleteMovie = catchAsync(async (req, res, next) => {
   if (!deleted) {
     return next(new AppError("Movie not found", 404));
   }
+
+  await Review.deleteMany({ movie: deleted._id });
 
   if (deleted.poster?.publicId) {
     await cloudinary.uploader.destroy(deleted.poster.publicId).catch((err) => {
