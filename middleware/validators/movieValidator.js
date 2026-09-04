@@ -32,6 +32,13 @@ export const movieValidationRules = [
       "Western",
     ])
     .withMessage("Invalid genre selected"),
+  body("trailerUrl")
+    .optional({ values: "falsy" })
+    .trim()
+    .matches(
+      /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[\w-]{11}/,
+    )
+    .withMessage("Trailer URL must be a valid YouTube link"),
 ];
 
 export const movieIdValidationRule = [
