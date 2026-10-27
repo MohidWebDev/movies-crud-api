@@ -7,6 +7,7 @@
   "scripts": {
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
     "perf:probe": "node scripts/perfProbe.js",
+    "security:probe": "node scripts/securityProbe.js",
     "test:coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "start": "node server.js"
   },
