@@ -9,6 +9,7 @@ process.env.JWT_EXPIRES_IN = "15m";
 process.env.JWT_REFRESH_SECRET = "probe-refresh-secret";
 process.env.JWT_REFRESH_EXPIRES_IN = "7d";
 process.env.CLIENT_URL = "http://localhost:5173";
+process.env.TRUST_PROXY = "1";
 
 // Import the app AFTER the env vars are set
 const { default: app } = await import("../app.js");

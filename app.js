@@ -12,6 +12,15 @@ import { generalLimiter, authLimiter } from "./middleware/rateLimiter.js";
 
 const app = express();
 
+// Behind a reverse proxy (Render, Railway, Nginx...), set TRUST_PROXY to the
+// number of proxies in front of the app, so rate limiting sees each visitor's
+// real IP. Leave it unset when the app is reached directly: trusting the
+// header there would let anyone fake their IP.
+const trustedProxies = Number.parseInt(process.env.TRUST_PROXY, 10);
+if (Number.isInteger(trustedProxies) && trustedProxies > 0) {
+  app.set("trust proxy", trustedProxies);
+}
+
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },

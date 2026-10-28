@@ -25,9 +25,19 @@ const errorHandler = (err, req, res, next) => {
 
   console.error(err.stack);
 
+  // In production, never send the text of an unexpected server error to the
+  // client (it can contain database or code internals). Intentional AppErrors
+  // and client errors (4xx) keep their messages.
+  const hideDetails =
+    process.env.NODE_ENV === "production" &&
+    err.statusCode >= 500 &&
+    !err.isOperational;
+
   res.status(err.statusCode).json({
     status: err.status,
-    message: err.message || "Something went wrong",
+    message: hideDetails
+      ? "Something went wrong"
+      : err.message || "Something went wrong",
   });
 };
 

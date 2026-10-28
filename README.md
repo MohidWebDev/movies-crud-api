@@ -52,6 +52,7 @@ Required variables:
 | `JWT_REFRESH_SECRET` | Secret used to sign refresh tokens |
 | `JWT_REFRESH_EXPIRES_IN` | Refresh token lifetime (e.g. `7d`) |
 | `CLIENT_URL` | Frontend origin allowed by CORS (e.g. `http://localhost:5173`) |
+| `TRUST_PROXY` | Optional. Number of reverse proxies in front of the app (e.g. `1` on Render or Railway). Leave unset locally. |
 
 ### 3. Run the server
 
