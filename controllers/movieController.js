@@ -4,6 +4,7 @@ import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
 import cloudinary from "../config/cloudinary.js";
 import escapeRegex from "../utils/escapeRegex.js";
+import { buildStatsPipeline } from "../utils/statsPipeline.js";
 
 const getAllMovies = catchAsync(async (req, res) => {
   const page = Math.max(Number(req.query.page) || 1, 1);
@@ -147,81 +148,7 @@ const deleteMovie = catchAsync(async (req, res, next) => {
 });
 
 const getMovieStats = catchAsync(async (req, res) => {
-  const MIN_REVIEWS_THRESHOLD = 3; // "m" — how many reviews before a movie is trusted on its own average
-
-  const stats = await Movie.aggregate([
-    {
-      $lookup: {
-        from: "reviews",
-        localField: "_id",
-        foreignField: "movie",
-        as: "reviews",
-      },
-    },
-    {
-      $match: {
-        "reviews.0": { $exists: true },
-      },
-    },
-    {
-      $addFields: {
-        averageRating: { $avg: "$reviews.rating" },
-        reviewCount: { $size: "$reviews" },
-      },
-    },
-    {
-      // Compute the site-wide average rating ("C") across all rated movies,
-      // so it's available to every document in the next stage.
-      $setWindowFields: {
-        output: {
-          siteAverageRating: { $avg: "$averageRating" },
-        },
-      },
-    },
-    {
-      $addFields: {
-        weightedRating: {
-          $add: [
-            {
-              $multiply: [
-                {
-                  $divide: [
-                    "$reviewCount",
-                    { $add: ["$reviewCount", MIN_REVIEWS_THRESHOLD] },
-                  ],
-                },
-                "$averageRating",
-              ],
-            },
-            {
-              $multiply: [
-                {
-                  $divide: [
-                    MIN_REVIEWS_THRESHOLD,
-                    { $add: ["$reviewCount", MIN_REVIEWS_THRESHOLD] },
-                  ],
-                },
-                "$siteAverageRating",
-              ],
-            },
-          ],
-        },
-      },
-    },
-    { $sort: { weightedRating: -1 } },
-    { $limit: 15 },
-    {
-      $project: {
-        _id: 1,
-        title: 1,
-        year: 1,
-        poster: 1,
-        averageRating: { $round: ["$averageRating", 1] },
-        reviewCount: 1,
-      },
-    },
-  ]);
-
+  const stats = await Review.aggregate(buildStatsPipeline());
   res.status(200).json(stats);
 });
 

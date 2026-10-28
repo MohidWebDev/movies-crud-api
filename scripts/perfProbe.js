@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import Movie from "../models/movieModel.js";
 import Review from "../models/reviewModel.js";
+import { buildStatsPipeline } from "../utils/statsPipeline.js";
 
 const MOVIE_COUNT = Number(process.env.SEED_MOVIES) || 50000;
 const REVIEW_COUNT = Number(process.env.SEED_REVIEWS) || 100000;
@@ -189,8 +190,8 @@ const searchFilter = (search) => {
   };
 };
 
-// Same pipeline that getMovieStats runs
-const statsPipeline = () => {
+// It’s the old version kept only for comparison
+const legacyStatsPipeline = () => {
   const MIN_REVIEWS_THRESHOLD = 3;
   return [
     {
@@ -294,15 +295,15 @@ const runFindProbe = async ({
   };
 };
 
-const runStatsProbe = async () => {
+const runStatsProbe = async ({ name, run }) => {
   let result = [];
   const ms = await timeIt(async () => {
-    result = await Movie.aggregate(statsPipeline());
+    result = await run();
   });
 
   return {
-    query: "Stats aggregation",
-    plan: "aggregate ($lookup on every movie)",
+    query: name,
+    plan: "aggregate",
     docsExamined: "-",
     returned: result.length,
     requestMs: Math.round(ms),
@@ -391,7 +392,18 @@ const main = async () => {
     for (const probe of probes) {
       rows.push(await runFindProbe(probe));
     }
-    rows.push(await runStatsProbe());
+    rows.push(
+      await runStatsProbe({
+        name: "Stats (old: lookup on every movie)",
+        run: () => Movie.aggregate(legacyStatsPipeline()),
+      }),
+    );
+    rows.push(
+      await runStatsProbe({
+        name: "Stats (new: group reviews first)",
+        run: () => Review.aggregate(buildStatsPipeline()),
+      }),
+    );
 
     console.table(rows);
   } finally {
