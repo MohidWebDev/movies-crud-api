@@ -5,6 +5,9 @@ import catchAsync from "../utils/catchAsync.js";
 import cloudinary from "../config/cloudinary.js";
 import escapeRegex from "../utils/escapeRegex.js";
 import { buildStatsPipeline } from "../utils/statsPipeline.js";
+import pick from "../utils/pick.js";
+
+const MOVIE_FIELDS = ["title", "director", "year", "genre", "trailerUrl"];
 
 const getAllMovies = catchAsync(async (req, res) => {
   const page = Math.max(Number(req.query.page) || 1, 1);
@@ -111,7 +114,7 @@ const updateMovie = catchAsync(async (req, res, next) => {
   const updatedMovie = await Movie.findByIdAndUpdate(
     req.params.id,
     { title, director, year, genre, trailerUrl },
-    { new: true, runValidators: true },
+    { returnDocument: "after", runValidators: true },
   );
   if (!updatedMovie) {
     return next(new AppError("Movie not found", 404));
@@ -120,8 +123,9 @@ const updateMovie = catchAsync(async (req, res, next) => {
 });
 
 const patchMovie = catchAsync(async (req, res, next) => {
-  const updatedMovie = await Movie.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
+  const updates = pick(req.body, MOVIE_FIELDS);
+  const updatedMovie = await Movie.findByIdAndUpdate(req.params.id, updates, {
+    returnDocument: "after",
     runValidators: true,
   });
   if (!updatedMovie) {
