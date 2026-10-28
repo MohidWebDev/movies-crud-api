@@ -79,4 +79,11 @@ export const getMoviesQueryValidationRules = [
     ])
     .withMessage("Invalid genre filter"),
   query("sort").optional().isIn(["year"]).withMessage("Invalid sort option"),
+  query("search")
+    .optional()
+    .custom((value) => typeof value === "string")
+    .withMessage("Search must be a single text value")
+    .bail()
+    .isLength({ max: 100 })
+    .withMessage("Search must be at most 100 characters"),
 ];

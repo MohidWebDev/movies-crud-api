@@ -3,6 +3,7 @@ import Review from "../models/reviewModel.js";
 import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
 import cloudinary from "../config/cloudinary.js";
+import escapeRegex from "../utils/escapeRegex.js";
 
 const getAllMovies = catchAsync(async (req, res) => {
   const page = Math.max(Number(req.query.page) || 1, 1);
@@ -16,9 +17,11 @@ const getAllMovies = catchAsync(async (req, res) => {
     andConditions.push({ genre: req.query.genre });
   }
 
-  if (req.query.search) {
-    const search = req.query.search.trim();
-    const regex = new RegExp(search, "i");
+  const search = req.query.search?.trim();
+
+  if (search) {
+    const pattern = escapeRegex(search);
+    const regex = new RegExp(pattern, "i");
 
     andConditions.push({
       $or: [
@@ -29,7 +32,7 @@ const getAllMovies = catchAsync(async (req, res) => {
           $expr: {
             $regexMatch: {
               input: { $toString: "$year" },
-              regex: search,
+              regex: pattern,
             },
           },
         },
