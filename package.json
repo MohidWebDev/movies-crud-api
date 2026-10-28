@@ -24,7 +24,7 @@
   "homepage": "https://github.com/MohidWebDev/movies-crud-api#readme",
   "dependencies": {
     "bcrypt": "^6.0.0",
-    "cloudinary": "^1.41.3",
+    "cloudinary": "^2.11.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -43,5 +43,10 @@
     "jest": "^30.5.2",
     "mongodb-memory-server": "^11.3.0",
     "supertest": "^7.3.1"
+  },
+  "overrides": {
+    "multer-storage-cloudinary": {
+      "cloudinary": "$cloudinary"
+    }
   }
 }
