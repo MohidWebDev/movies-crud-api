@@ -48,10 +48,11 @@ const getAllMovies = catchAsync(async (req, res) => {
     filter.$and = andConditions;
   }
 
-  const sortOption = req.query.sort === "year" ? { year: 1 } : {};
+  const sortOption =
+    req.query.sort === "year" ? { year: 1, _id: 1 } : { _id: 1 };
 
   const [movies, totalCount] = await Promise.all([
-    Movie.find(filter).sort(sortOption).skip(skip).limit(limit),
+    Movie.find(filter).sort(sortOption).skip(skip).limit(limit).lean(),
     Movie.countDocuments(filter),
   ]);
 
@@ -64,7 +65,7 @@ const getAllMovies = catchAsync(async (req, res) => {
 });
 
 const getMovieById = catchAsync(async (req, res, next) => {
-  const movie = await Movie.findById(req.params.id);
+  const movie = await Movie.findById(req.params.id).lean();
   if (!movie) {
     return next(new AppError("Movie not found", 404));
   }

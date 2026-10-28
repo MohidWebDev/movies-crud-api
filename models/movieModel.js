@@ -73,6 +73,7 @@ const movieSchema = new mongoose.Schema(
 );
 
 movieSchema.index({ genre: 1 });
+movieSchema.index({ year: 1, _id: 1 }); // year sort with a stable tiebreaker
 
 movieSchema.pre("save", function () {
   this.title = this.title.trim();

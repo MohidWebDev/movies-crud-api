@@ -3,6 +3,8 @@ import Movie from "../models/movieModel.js";
 import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
 
+const MAX_REVIEWS_PER_MOVIE = 100;
+
 const createReview = catchAsync(async (req, res, next) => {
   const { movieId } = req.params;
 
@@ -24,7 +26,10 @@ const createReview = catchAsync(async (req, res, next) => {
 
 const getReviewsForMovie = catchAsync(async (req, res) => {
   const { movieId } = req.params;
-  const reviews = await Review.find({ movie: movieId });
+  const reviews = await Review.find({ movie: movieId })
+    .sort({ createdAt: -1 })
+    .limit(MAX_REVIEWS_PER_MOVIE)
+    .lean();
   res.status(200).json(reviews);
 });
 
@@ -44,7 +49,7 @@ const updateReview = catchAsync(async (req, res, next) => {
   const updatedReview = await Review.findByIdAndUpdate(
     req.params.id,
     { rating, comment },
-    { new: true, runValidators: true },
+    { returnDocument: "after", runValidators: true },
   );
   if (!updatedReview) {
     return next(new AppError("Review not found", 404));

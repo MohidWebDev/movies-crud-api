@@ -270,7 +270,7 @@ const runFindProbe = async ({
   withCount,
 }) => {
   const buildQuery = () => {
-    let query = model.find(filter);
+    let query = model.find(filter).lean();
     if (sort) query = query.sort(sort);
     return query.limit(limit);
   };
@@ -347,6 +347,7 @@ const main = async () => {
         name: "List, no filter",
         model: Movie,
         filter: {},
+        sort: { _id: 1 },
         limit: PAGE_SIZE,
         withCount: true,
       },
@@ -354,6 +355,7 @@ const main = async () => {
         name: "Filter genre=Comedy",
         model: Movie,
         filter: { genre: "Comedy" },
+        sort: { _id: 1 },
         limit: PAGE_SIZE,
         withCount: true,
       },
@@ -361,7 +363,7 @@ const main = async () => {
         name: "Sort by year",
         model: Movie,
         filter: {},
-        sort: { year: 1 },
+        sort: { year: 1, _id: 1 },
         limit: PAGE_SIZE,
         withCount: true,
       },
@@ -369,6 +371,7 @@ const main = async () => {
         name: 'Search "dark"',
         model: Movie,
         filter: searchFilter("dark"),
+        sort: { _id: 1 },
         limit: PAGE_SIZE,
         withCount: true,
       },
@@ -376,6 +379,7 @@ const main = async () => {
         name: 'Search "xyzzy" (no match)',
         model: Movie,
         filter: searchFilter("xyzzy"),
+        sort: { _id: 1 },
         limit: PAGE_SIZE,
         withCount: true,
       },
@@ -383,7 +387,8 @@ const main = async () => {
         name: "Reviews of a popular movie",
         model: Review,
         filter: { movie: popularMovieId },
-        limit: 0,
+        sort: { createdAt: -1 },
+        limit: 100,
         withCount: false,
       },
     ];
