@@ -9,6 +9,7 @@
     "perf:probe": "node scripts/perfProbe.js",
     "security:probe": "node scripts/securityProbe.js",
     "test:coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage",
+    "e2e:server": "node scripts/e2eServer.js",
     "start": "node server.js"
   },
   "repository": {
