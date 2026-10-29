@@ -114,17 +114,25 @@ npm run test:coverage   # run tests and write a coverage report to coverage/
 
 ### What is tested
 
-| Test file                       | Covers                                                                                                    |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `tests/movies.read.test.js`     | `GET /api/movies` (pagination, genre filter, search, sorting, query validation) and `GET /api/movies/:id` |
-| `tests/movies.create.test.js`   | `POST /api/movies` (auth, success, input sanitizing, every validation rule)                               |
-| `tests/movies.update.test.js`   | `PUT` and `PATCH /api/movies/:id` (admin only, 404, validation)                                           |
-| `tests/movies.delete.test.js`   | `DELETE /api/movies/:id` (admin only, review cleanup, Cloudinary poster cleanup)                          |
-| `tests/movies.poster.test.js`   | `POST /api/movies/:id/poster` (upload, replace, file type and size limits)                                |
-| `tests/auth.middleware.test.js` | `protect` and `authorize` middleware (missing, invalid, expired tokens, roles)                            |
-| `tests/errors.test.js`          | Error handler, unknown routes, unexpected 500s, helmet and CORS headers                                   |
+| Test file                                                    | Covers                                                                                                    |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `tests/movies.read.test.js`                                  | `GET /api/movies` (pagination, genre filter, search, sorting, query validation) and `GET /api/movies/:id` |
+| `tests/movies.create.test.js`                                | `POST /api/movies` (auth, success, input sanitizing, every validation rule)                               |
+| `tests/movies.update.test.js`                                | `PUT` and `PATCH /api/movies/:id` (admin only, 404, validation)                                           |
+| `tests/movies.delete.test.js`                                | `DELETE /api/movies/:id` (admin only, review cleanup, Cloudinary poster cleanup)                          |
+| `tests/movies.poster.test.js`                                | `POST /api/movies/:id/poster` (upload, replace, file type and size limits)                                |
+| `tests/auth.middleware.test.js`                              | `protect` and `authorize` middleware (missing, invalid, expired tokens, roles)                            |
+| `tests/errors.test.js`                                       | Error handler, unknown routes, unexpected 500s, helmet and CORS headers                                   |
+| `tests/movies.search.test.js`                                | Search input handling: regex special characters, length limit, repeated parameter, year search            |
+| `tests/movies.stats.test.js`                                 | `GET /api/movies/stats`: weighted ranking, rounding, 15-movie cap                                         |
+| `tests/movies.order.test.js`                                 | Stable ordering across pages, including ties in `sort=year`                                               |
+| `tests/movies.patch.security.test.js`                        | `PATCH` ignores fields outside the allowed list (poster, dotted paths, `$set`)                            |
+| `tests/reviews.list.test.js`                                 | Review list: newest first, capped at 100, only the requested movie                                        |
+| `tests/auth.validation.test.js`                              | Register and login validation, protection against operator injection                                      |
+| `tests/errorHandler.production.test.js`                      | Internal error details are hidden in production                                                           |
+| `tests/proxy.enabled.test.js`, `tests/proxy.default.test.js` | The `TRUST_PROXY` setting                                                                                 |
 
-Not covered yet: the auth endpoints (`/api/auth/*`), the review endpoints and `/api/movies/stats`.
+Not covered yet: creating, updating and deleting reviews, and `/api/auth/refresh`, `/api/auth/logout` and `/api/auth/me`.
 
 ### How the tests are set up
 
@@ -132,6 +140,7 @@ Not covered yet: the auth endpoints (`/api/auth/*`), the review endpoints and `/
 - `tests/setupDb.js` starts an in-memory MongoDB and wipes every collection after each test, so tests are independent.
 - `tests/helpers/` has factories for movies and a helper that creates a user with a valid JWT.
 - Cloudinary is mocked (`jest.unstable_mockModule`, because the project uses native ES modules), so no test uploads anything.
+- `npm run e2e:server` starts the API on an in-memory database with seeded data. The frontend's Playwright tests use it (see the frontend README).
 
 ### Testing approach: unit, integration and end-to-end
 
@@ -140,3 +149,36 @@ Not covered yet: the auth endpoints (`/api/auth/*`), the review endpoints and `/
 - **End-to-end tests** drive the complete system (browser, frontend, backend and database together). They are not part of this project.
 
 Only the outside world is mocked: Cloudinary, because it is a paid network service.
+
+## Performance and Security
+
+The app went through a performance and security audit. The findings, measurements and fixes are in [`docs/audit-report.md`](docs/audit-report.md).
+
+Two probe scripts repeat the measurements. Both run against a temporary in-memory database, never your real one:
+
+```bash
+npm run perf:probe       # seeds 50k movies and 100k reviews, times the key queries and shows explain plans
+npm run security:probe   # sends suspicious requests (regex input, operator injection, PATCH fields...) and prints verdicts
+```
+
+### What was fixed
+
+- Search input is escaped and length-limited (a search like `[` used to crash the request with a 500)
+- Stats ranking aggregates from reviews first and only looks up the top 15 movies
+- Register and login only accept plain strings (closes email enumeration and operator injection)
+- `PATCH /api/movies/:id` only accepts the movie fields, nothing else
+- Movie lists have a stable order (a compound `year + _id` index), review lists return the newest 100, and read queries use `.lean()`
+- Internal error messages are hidden in production, and `TRUST_PROXY` is supported
+- Vulnerable dependencies were updated
+
+### Deployment notes
+
+- Set `NODE_ENV=production`. Error hiding and the cookie `secure`/`sameSite` flags depend on it.
+- Behind a single reverse proxy (Render, Railway...), set `TRUST_PROXY=1` so rate limiting sees each visitor's real IP. Leave it unset when the app is reached directly.
+- If a secret is ever committed, rotate it. Deleting the commit is not enough.
+
+### Known limitations
+
+- Search is a substring match across several fields, so it cannot use an index and scans the collection. It was ~0.5 s at 50k movies.
+- A movie's review list returns its newest 100 reviews.
+- Five low-severity advisories remain in dev tooling (`deepmerge`, via `jest`). The only offered fix is a Jest downgrade, and the code never passes untrusted input to it.
